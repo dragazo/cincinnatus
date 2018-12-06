@@ -77,8 +77,11 @@ namespace Cincinnatus
             ToolStripMenuItem colorModes = new ToolStripMenuItem("Background", null);
             contextMenuStrip.Items.Add(colorModes);
 
-            foreach (KeyValuePair<Color, string> entry in new Dictionary<Color, string>()
-                { { Color.White, "White" }, { Color.Black ,"Black"} })
+            foreach (KeyValuePair<Color, string> entry in new List<KeyValuePair<Color, string>>()
+                {
+                    new KeyValuePair<Color, string>(Color.Black, "Black"),
+                    new KeyValuePair<Color, string>(Color.White, "White"),
+                })
             {
                 ToolStripMenuItem item = new ToolStripMenuItem(entry.Value, null);
                 item.Checked = BackColor == entry.Key;
@@ -95,7 +98,10 @@ namespace Cincinnatus
             }
             
             // allow user to reset view (e.g. zoom out too far and lose image)
-            contextMenuStrip.Items.Add(new ToolStripMenuItem("Reset View", null, (o, e) => ResetView()));
+            contextMenuStrip.Items.Add(new ToolStripMenuItem("Reset View", null, (o, e) => ResetViewFit()));
+
+            // allow user to set zoom to actual image size
+            contextMenuStrip.Items.Add(new ToolStripMenuItem("Actual Size", null, (o, e) => ResetViewTrueSize()));
 
             // launch another instance of the viewer (not tied to this one)
             contextMenuStrip.Items.Add(new ToolStripMenuItem("New Window", null, (o, e) => Program.LaunchProcess()));
@@ -201,36 +207,60 @@ namespace Cincinnatus
         {
             base.OnShown(e);
 
-            ResetView();
+            ResetViewFit();
         }
 
         /// <summary>
-        /// centers and zooms the display image
+        /// Centers the display image and zooms the image to fit in the display window.
+        /// Additionally redraws the display.
         /// </summary>
-        private void ResetView()
+        private void ResetViewFit()
         {
             // can't center display if image is null. but we will redraw
-            if (Image == null)
+            if (Image != null)
             {
-                Invalidate();
-                return;
+                float imgWidth = Image.Width, imgHeight = Image.Height;
+
+                // remove half a pixel from virtual size if not using a pixel-perfect offset mode
+                if (PixelOffsetMode != PixelOffsetMode.HighQuality && PixelOffsetMode != PixelOffsetMode.Half)
+                {
+                    imgWidth -= 0.5f;
+                    imgHeight -= 0.5f;
+                }
+
+                ImageScale = Math.Min(
+                    ClientRectangle.Width / imgWidth,
+                    ClientRectangle.Height / imgHeight);
+                ImageOrigin = new PointF(
+                    (ClientRectangle.Width - imgWidth * ImageScale) / 2f,
+                    (ClientRectangle.Height - imgHeight * ImageScale) / 2f);
             }
 
-            float imgWidth = Image.Width, imgHeight = Image.Height;
-
-            // remove half a pixel from virtual size if not using a pixel-perfect offset mode
-            if (PixelOffsetMode != PixelOffsetMode.HighQuality && PixelOffsetMode != PixelOffsetMode.Half)
+            Invalidate();
+        }
+        /// <summary>
+        /// Centers the display image and zooms to the actual image size.
+        /// Additionally redraws the display.
+        /// </summary>
+        private void ResetViewTrueSize()
+        {
+            // can't center display if image is null. but we will redraw
+            if (Image != null)
             {
-                imgWidth -= 0.5f;
-                imgHeight -= 0.5f;
-            }
+                float imgWidth = Image.Width, imgHeight = Image.Height;
 
-            ImageScale = Math.Min(
-                ClientRectangle.Width / imgWidth,
-                ClientRectangle.Height / imgHeight);
-            ImageOrigin = new PointF(
-                (ClientRectangle.Width - imgWidth * ImageScale) / 2f,
-                (ClientRectangle.Height - imgHeight * ImageScale) / 2f);
+                // remove half a pixel from virtual size if not using a pixel-perfect offset mode
+                if (PixelOffsetMode != PixelOffsetMode.HighQuality && PixelOffsetMode != PixelOffsetMode.Half)
+                {
+                    imgWidth -= 0.5f;
+                    imgHeight -= 0.5f;
+                }
+
+                ImageScale = 1;
+                ImageOrigin = new PointF(
+                    (ClientRectangle.Width - imgWidth) / 2f,
+                    (ClientRectangle.Height - imgHeight) / 2f);
+            }
 
             Invalidate();
         }
@@ -262,9 +292,9 @@ namespace Cincinnatus
         public void SetImage(Image image, string title)
         {
             Image = image;
-            Text = title != null ? string.Format("{0} - {1}", Application.ProductName, title) : Application.ProductName;
+            Text = title != null ? $"{Application.ProductName} - {title}" : Application.ProductName;
 
-            ResetView();
+            ResetViewFit();
         }
 
         /// <summary>
