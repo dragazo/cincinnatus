@@ -104,7 +104,7 @@ namespace Cincinnatus
             contextMenuStrip.Items.Add(new ToolStripMenuItem("Actual Size", null, (o, e) => ResetViewTrueSize()));
 
             // launch another instance of the viewer (not tied to this one)
-            contextMenuStrip.Items.Add(new ToolStripMenuItem("New Window", null, (o, e) => Program.LaunchProcess()));
+            contextMenuStrip.Items.Add(new ToolStripMenuItem("New Window", null, (o, e) => Process.Start(new ProcessStartInfo(Application.ExecutablePath))));
 
             ContextMenuStrip = contextMenuStrip;
 
@@ -305,9 +305,11 @@ namespace Cincinnatus
         public bool SetImage(string path)
         {
             Image img = Utility.TryGetImage(path);
+
             if (img == null)
             {
-                SetImage(null, "File Not Found");
+                MessageBox.Show($"Error reading {path}\n\nFile did not exist or was not an image", "Failed to Open Image",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
 
