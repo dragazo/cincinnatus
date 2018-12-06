@@ -13,7 +13,6 @@ namespace Cincinnatus
         /// Opens and returns a file if it exists. returns null if fail
         /// </summary>
         /// <param name="path">file path to image</param>
-        /// <returns></returns>
         public static Image TryGetImage(string path)
         {
             try { return Image.FromFile(path); }
@@ -26,7 +25,6 @@ namespace Cincinnatus
         /// transforms cammel case names into normal text by adding spaces before capitals
         /// </summary>
         /// <param name="str">string to transform</param>
-        /// <returns></returns>
         public static string TransformCammelCase(string str)
         {
             StringBuilder b = new StringBuilder();

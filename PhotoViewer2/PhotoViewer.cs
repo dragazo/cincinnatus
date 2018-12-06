@@ -31,38 +31,14 @@ namespace Cincinnatus
         private float ImageScale = 1.0f;
 
         /// <summary>
-        /// the interpolation mode to use for drawing image.
+        /// The interpolation mode to use for drawing image.
         /// </summary>
-        private InterpolationMode _InterpolationMode = InterpolationMode.NearestNeighbor;
-        /// <summary>
-        /// Gets or sets the interpolation mode to use for drawing image. setting triggers canvas redraw
-        /// </summary>
-        private InterpolationMode InterpolationMode
-        {
-            get { return _InterpolationMode; }
-            set
-            {
-                _InterpolationMode = value;
-                Invalidate();
-            }
-        }
-        
+        private InterpolationMode InterpolationMode = InterpolationMode.NearestNeighbor;
+
         /// <summary>
         /// The pixel offset mode to use for drawing the image
         /// </summary>
-        private PixelOffsetMode _PixelOffsetMode = PixelOffsetMode.Half;
-        /// <summary>
-        /// Gets or sets the pixel offset to use for drawing the image. setting triggers canvas redraw
-        /// </summary>
-        private PixelOffsetMode PixelOffsetMode
-        {
-            get { return _PixelOffsetMode; }
-            set
-            {
-                _PixelOffsetMode = value;
-                Invalidate();
-            }
-        }
+        private PixelOffsetMode PixelOffsetMode = PixelOffsetMode.Half;
 
         public PhotoViewer()
         {
@@ -90,35 +66,12 @@ namespace Cincinnatus
                         foreach (ToolStripMenuItem other in interpolationModes.DropDownItems)
                             other.Checked = false;
                         item.Checked = true;
+
+                        Invalidate();
                     };
 
                     interpolationModes.DropDownItems.Add(item);
-                }
-                    
-
-            // create drop-down for pixel offsets
-            /*
-            ToolStripMenuItem pixelOffsetModes = new ToolStripMenuItem("Pixel Offset", null);
-            contextMenuStrip.Items.Add(pixelOffsetModes);
-
-            foreach (PixelOffsetMode mode in Enum.GetValues(typeof(PixelOffsetMode)))
-                if (mode != PixelOffsetMode.Invalid && mode != PixelOffsetMode.Default)
-                {
-                    ToolStripMenuItem item = new ToolStripMenuItem(Utility.TransformCammelCase(mode.ToString()), null);
-                    item.Checked = PixelOffsetMode == mode;
-                    item.Click += (o, e) =>
-                    {
-                        PixelOffsetMode = mode;
-
-                        foreach (ToolStripMenuItem other in pixelOffsetModes.DropDownItems)
-                            other.Checked = false;
-                        item.Checked = true;
-                    };
-
-                    pixelOffsetModes.DropDownItems.Add(item);
-                }
-            */
-                    
+                }  
 
             // create drop-down for background color values
             ToolStripMenuItem colorModes = new ToolStripMenuItem("Background", null);
@@ -295,9 +248,11 @@ namespace Cincinnatus
             d.Dispose();
         }
 
-        // --------------------------
-        // public
-        // --------------------------
+        // ------------ //
+
+        // -- public -- //
+
+        // ------------ //
 
         /// <summary>
         /// Sets the image and display text for the PhotoViewer
