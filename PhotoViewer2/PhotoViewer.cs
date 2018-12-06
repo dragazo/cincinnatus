@@ -118,11 +118,8 @@ namespace Cincinnatus
 
             if (Image != null)
             {
-                float imageWidth = Image.Width * ImageScale, imageHeight = Image.Height * ImageScale;
-                
-                // if the image is out of view, don't bother drawing it
-                if (ImageOrigin.X > ClientRectangle.Width || ImageOrigin.X + imageWidth < 0f ||
-                    ImageOrigin.Y > ClientRectangle.Height || ImageOrigin.Y + imageHeight < 0f) return;
+                float imageWidth = Image.Width * ImageScale;
+                float imageHeight = Image.Height * ImageScale;
 
                 e.Graphics.InterpolationMode = InterpolationMode;
                 e.Graphics.PixelOffsetMode = PixelOffsetMode;
@@ -148,7 +145,7 @@ namespace Cincinnatus
             {
                 await Task.Delay(DragInterval);
 
-                // ignore movement frames where the mouse didn't mode
+                // ignore frames where the mouse didn't move
                 Point now = PointToClient(MousePosition);
                 if (now == last) continue;
                 last = now;
@@ -270,12 +267,11 @@ namespace Cincinnatus
         /// </summary>
         private void PromptOpenImage()
         {
-            OpenFileDialog d = new OpenFileDialog();
-            d.Title = "Open Image";
-
-            if (d.ShowDialog() == DialogResult.OK) SetImage(d.FileName);
-
-            d.Dispose();
+            using (OpenFileDialog d = new OpenFileDialog())
+            {
+                d.Title = "Open Image";
+                if (d.ShowDialog() == DialogResult.OK) SetImage(d.FileName);
+            }
         }
 
         // ------------ //

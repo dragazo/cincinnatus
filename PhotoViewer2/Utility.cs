@@ -10,28 +10,28 @@ namespace Cincinnatus
     public static class Utility
     {
         /// <summary>
-        /// Opens and returns a file if it exists. returns null if fail
+        /// Opens an image file and returns the read image.
+        /// Returns null on failure (e.g. file did not exist or wrong format).
         /// </summary>
         /// <param name="path">file path to image</param>
         public static Image TryGetImage(string path)
         {
             try { return Image.FromFile(path); }
-            catch (Exception) { }
-
-            return null;
+            catch (Exception) { return null; }
         }
 
         /// <summary>
-        /// transforms cammel case names into normal text by adding spaces before capitals
+        /// Transforms cammel case names into normal text by adding spaces before capitals
         /// </summary>
         /// <param name="str">string to transform</param>
         public static string TransformCammelCase(string str)
         {
             StringBuilder b = new StringBuilder();
 
-            for (int i = 0; i < str.Length; i++)
+            if (str.Length != 0) b.Append(str[0]);
+            for (int i = 1; i < str.Length; i++)
             {
-                if (i != 0 && str[i] >= 'A' && str[i] <= 'Z') b.Append(' ');
+                if (char.IsUpper(str[i])) b.Append(' ');
                 b.Append(str[i]);
             }
 
