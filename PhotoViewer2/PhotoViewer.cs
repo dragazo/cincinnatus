@@ -50,6 +50,7 @@ namespace Cincinnatus
 				item.Checked = Interp == mode;
 				item.Click += (o, e) =>
 				{
+					if (Interp == mode) return; // switching to same mode is no-op
 					Interp = mode;
 
 					foreach (ToolStripMenuItem other in interpModes.DropDownItems) other.Checked = false;
@@ -59,7 +60,7 @@ namespace Cincinnatus
 				};
 
 				interpModes.DropDownItems.Add(item);
-			}  
+			}
 
 			// create drop-down for background color values
 			ToolStripMenuItem colorModes = new ToolStripMenuItem("Background", null);
@@ -210,15 +211,33 @@ namespace Cincinnatus
 		{
 			base.OnKeyDown(e);
 
-			if (e.KeyCode == Keys.Right)
+			switch (e.KeyCode)
 			{
-				string next = NextImage();
-				if (next != null) SetImage(next);
-			}
-			else if (e.KeyCode == Keys.Left)
-			{
-				string prev = PrevImage();
-				if (prev != null) SetImage(prev);
+			case Keys.Right:
+				if ((ModifierKeys & Keys.Control) != Keys.None) FlipHorizontal();
+				else
+				{
+					string next = NextImage();
+					if (next != null) SetImage(next);
+				}
+				break;
+			case Keys.Left:
+				if ((ModifierKeys & Keys.Control) != Keys.None) FlipHorizontal();
+				else
+				{
+					string prev = PrevImage();
+					if (prev != null) SetImage(prev);
+				}
+				break;
+
+			case Keys.Up:
+				if ((ModifierKeys & Keys.Control) != Keys.None) FlipVertical();
+				else Clockwise90();
+				break;
+			case Keys.Down:
+				if ((ModifierKeys & Keys.Control) != Keys.None) FlipVertical();
+				else Anticlockwise90();
+				break;
 			}
 		}
 
@@ -274,6 +293,94 @@ namespace Cincinnatus
 			{
 				d.Title = "Open Image";
 				if (d.ShowDialog() == DialogResult.OK) SetImage(d.FileName);
+			}
+		}
+
+		/// <summary>
+		/// Rotates the image 90 degrees clockwise and redraws the canvas
+		/// </summary>
+		private void Clockwise90()
+		{
+			if (Image == null) return;
+			Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
+
+			// if image is fitted to screen, maintain that condition
+			if (ImageFitted) ResetViewFit();
+			// otherwise rotate image about the center of the display
+			else
+			{
+				PointF center = new PointF(ClientRectangle.Width / 2f, ClientRectangle.Height / 2f);
+				PointF off = new PointF(ImageOrigin.X - center.X, ImageOrigin.Y - center.Y);
+
+				float nx = center.X - off.Y - Image.Width * ImageScale;
+				float ny = center.Y + off.X;
+
+				ImageOrigin = new PointF(nx, ny);
+				Invalidate();
+			}
+		}
+		/// <summary>
+		/// Rotates the image 90 degrees clockwise and redraws the canvas
+		/// </summary>
+		private void Anticlockwise90()
+		{
+			if (Image == null) return;
+			Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
+
+			// if image is fitted to screen, maintain that condition
+			if (ImageFitted) ResetViewFit();
+			// otherwise rotate image about the center of the display
+			else
+			{
+				PointF center = new PointF(ClientRectangle.Width / 2f, ClientRectangle.Height / 2f);
+				PointF off = new PointF(ImageOrigin.X - center.X, ImageOrigin.Y - center.Y);
+
+				float nx = center.X + off.Y;
+				float ny = center.Y - off.X - Image.Height * ImageScale;
+
+				ImageOrigin = new PointF(nx, ny);
+				Invalidate();
+			}
+		}
+
+		/// <summary>
+		/// Flips the image vertically and redraws the canvas
+		/// </summary>
+		private void FlipVertical()
+		{
+			if (Image == null) return;
+			Image.RotateFlip(RotateFlipType.RotateNoneFlipY);
+
+			// if image is fitted to screen, we can maintain that condition with no-op
+			if (ImageFitted) Invalidate();
+			// otherwise flip image about the center of the display
+			else
+			{
+				float center = ClientRectangle.Height / 2f;
+				float off = ImageOrigin.Y - center;
+
+				ImageOrigin.Y = center - off - Image.Height * ImageScale;
+				Invalidate();
+			}
+		}
+		/// <summary>
+		/// Flips the image horizontally and redraws the canvas
+		/// </summary>
+		private void FlipHorizontal()
+		{
+			if (Image == null) return;
+			Image.RotateFlip(RotateFlipType.RotateNoneFlipX);
+
+			// if image is fitted to screen, we can maintain that condition with no-op
+			if (ImageFitted) Invalidate();
+			// otherwise flip image about the center of the display
+			else
+			{
+				float center = ClientRectangle.Width / 2f;
+				float off = ImageOrigin.X - center;
+
+				ImageOrigin.X = center - off - Image.Width * ImageScale;
+				Invalidate();
 			}
 		}
 
